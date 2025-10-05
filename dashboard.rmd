@@ -1,0 +1,82 @@
+---
+title: "Europe Mobile Subscribers Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+---
+
+```{r}
+library(jsonlite)
+library(dplyr)
+library(sf)
+library(leaflet)
+library(tmap)
+library(flexdashboard)
+library(geojsonio)
+
+```
+
+```{r}
+
+
+
+# Load and flatten JSON
+url <- "https://raw.githubusercontent.com/aditipabal/worldindicator-690d/main/worldindicators.json"
+world_sf <- geojson_read(url, what = "sp") %>% st_as_sf()
+world_sf <- world_sf %>% rename_with(~ gsub("properties\\.", "", .x))
+
+# Filter Europe
+europe_sf <- world_sf %>% filter(region == "EUROPE")
+
+```
+
+```{r}
+
+# Check
+head(europe_sf$Country)
+head(europe_sf$mobiles)
+
+```
+
+```{r}
+tmap_mode("view")
+choropleth_map <- tm_shape(europe_sf) +
+  tm_polygons("mobiles",
+              style = "quantile",
+              palette = "Blues",
+              title = "Mobile Subscribers") +
+  tm_layout(title = "Choropleth Map - Europe")
+
+choropleth_map
+
+
+```
+
+```{r}
+
+
+
+dot_map <- tm_shape(europe_sf) +
+  tm_dots("mobiles",
+          scale = 0.1,
+          col = "blue",
+          size = "mobiles",
+          title = "Mobile Subscribers") +
+  tm_layout(title = "Dot Density Map - Europe")
+
+dot_map
+
+```
+
+```{r}
+prop_map <- tm_shape(europe_sf) +
+  tm_bubbles(size = "mobiles",
+             col = "red",
+             alpha = 0.5,
+             border.col = "black",
+             title.size = "Mobiles") +
+  tm_layout(title = "Proportional Symbols Map - Europe")
+
+prop_map
+
+```
